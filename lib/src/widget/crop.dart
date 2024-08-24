@@ -6,6 +6,7 @@ import 'package:crop_your_image/src/logic/shape.dart';
 import 'package:crop_your_image/src/widget/calculator.dart';
 import 'package:crop_your_image/src/widget/circle_crop_area_clipper.dart';
 import 'package:crop_your_image/src/widget/constants.dart';
+import 'package:crop_your_image/src/widget/crop_area_border_painter.dart';
 import 'package:crop_your_image/src/widget/rect_crop_area_clipper.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -134,6 +135,12 @@ class Crop extends StatelessWidget {
   /// (Advanced) Injected logic for parsing image detail.
   final ImageParser imageParser;
 
+  /// Color of the border around crop area
+  final Color? cropAreaBorderColor;
+
+  /// Width of the border around crop area
+  final double? cropAreaBorderWidth;
+
   Crop({
     super.key,
     required this.image,
@@ -147,6 +154,8 @@ class Crop extends StatelessWidget {
     this.onMoved,
     this.onStatusChanged,
     this.maskColor,
+    this.cropAreaBorderColor,
+    this.cropAreaBorderWidth,
     this.baseColor = Colors.white,
     this.radius = 0,
     this.cornerDotBuilder,
@@ -197,6 +206,8 @@ class Crop extends StatelessWidget {
             imageCropper: imageCropper,
             formatDetector: formatDetector,
             imageParser: imageParser,
+            cropAreaBorderColor: cropAreaBorderColor,
+            cropAreaBorderWidth: cropAreaBorderWidth,
           ),
         );
       },
@@ -217,6 +228,8 @@ class _CropEditor extends StatefulWidget {
   final ValueChanged<CropStatus>? onStatusChanged;
   final Color? maskColor;
   final Color baseColor;
+  final Color? cropAreaBorderColor;
+  final double? cropAreaBorderWidth;
   final double radius;
   final CornerDotBuilder? cornerDotBuilder;
   final Clip clipBehavior;
@@ -254,6 +267,8 @@ class _CropEditor extends StatefulWidget {
     required this.formatDetector,
     required this.imageParser,
     required this.scrollZoomSensitivity,
+    this.cropAreaBorderWidth,
+    this.cropAreaBorderColor,
   });
 
   @override
@@ -651,6 +666,21 @@ class _CropEditorState extends State<_CropEditor> {
                     width: double.infinity,
                     height: double.infinity,
                     color: widget.maskColor ?? Colors.black.withAlpha(100),
+                  ),
+                ),
+              ),
+              if(widget.cropAreaBorderWidth != null && widget.cropAreaBorderColor != null)
+              IgnorePointer(
+                child: ClipPath(
+                  clipper: _withCircleUi
+                      ? CircleCropAreaClipper(_cropRect)
+                      : CropAreaClipper(_cropRect, widget.radius),
+                  child: CustomPaint(
+                    painter: CropAreaBorderPainter(rect: _cropRect, radius: widget.radius, borderWidth: widget.cropAreaBorderWidth!, borderColor: widget.cropAreaBorderColor!),
+                    child: Container(
+                      width: double.infinity,
+                      height: double.infinity,
+                    ),
                   ),
                 ),
               ),
